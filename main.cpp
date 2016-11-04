@@ -15,34 +15,12 @@
 #include "main.h"
 #include "UdpServer.h"
 
-//include fftw to do the fourier transform
-#include <fftw3.h>
-
-//defining variables
-#define BUFFER_SIZE 44100/240 //This smaller buffer works better, effectively 240 updates/s
-#define excess 128
-
-//setting up global variables
-
-//variable for closing things before quiting
-volatile sig_atomic_t flag = 0;
-
-//variables for Pulseaudio
-pa_simple *s;
-pa_sample_spec ss;
-
-char server[] = "0.0.0.0";
-int port = 8000;
-UdpServer client(server, port);
-
-//variables for the lights
-char redbluegreen[3] = {char(0), char(0), char(0)};
-char leave[3] = {char(0), char(0), char(0)};
-
 int main()
 {
     // Initializeing variables
     signal(SIGINT, stop);
+
+    client = new UdpServer(server, port);
 
     // Setting up Pulse
     ss.format = PA_SAMPLE_U8;
@@ -74,8 +52,8 @@ void stop(int sig){
 void leaving(){
     //this function closes all of the open connections
     if(s){
-        client.sendMessage(leave);
-        client.closeClient();
+        client->sendMessage(leave);
+        client->closeClient();
         pa_simple_free(s);
         std::cout << "disconnected" << std::endl;
     }
@@ -85,7 +63,7 @@ void vu_loop(){
     int avg;
     int absolute;
 
-    client.setUp();
+    client->setUp();
 
     while(true){
         uint8_t buf[BUFFER_SIZE];
@@ -109,31 +87,10 @@ void vu_loop(){
     }
 }
 
-void print_loop(){
-    int absolute;
-    while(true){
-        uint8_t buf[BUFFER_SIZE];
-        pa_simple_read(s, buf, sizeof(buf), NULL);
-        for(int i = 0; i < sizeof(buf); i ++){
-            absolute = abs(int(buf[i] - excess));
-            for(int d = 0; d < absolute; d++){
-                printf(">");
-            }
-            printf("\n");
-        }
-        if(flag){
-            break;
-        }
-    }
-}
-
 void fourier_loop(){
     while(true){
         uint8_t buf[BUFFER_SIZE];
         pa_simple_read(s, buf, sizeof(buf), NULL);
-        int N = sizeof(buf);
-        fftw_complex *in, *out;
-        fftw_plan p;
 
         in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
         out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
@@ -166,5 +123,5 @@ void vu(int level){
         redbluegreen[1] = char(255);;
         redbluegreen[0] = char(abs(255 - level*2));
     }
-    client.sendMessage(redbluegreen);
+    client->sendMessage(redbluegreen);
 }
