@@ -1,8 +1,5 @@
 /* Carl Moser and Ian Paul
-*  Spring 2016 Software Design
-*
-*  TODO:
-*  Have pulse be the main thing in this file, addons like the socket and visualizations should be in classes
+*  Fall 2016 Music Visualizer
 */
 
 //includes for printing/closing properly

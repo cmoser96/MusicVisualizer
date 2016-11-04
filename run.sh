@@ -1,3 +1,3 @@
 #/bin/bash
 
-gcc -o main UdpServer.cpp main.cpp -lstdc++ -lpulse-simple -lpulse -lfftw3
+gcc -o main.o UdpServer.cpp main.cpp -lstdc++ -lpulse-simple -lpulse -lfftw3
