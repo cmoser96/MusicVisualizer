@@ -23,6 +23,7 @@ volatile sig_atomic_t flag = 0;
 int N = BUFFER_SIZE;
 fftw_complex *in, *out;
 fftw_plan p;
+uint8_t buf[BUFFER_SIZE];
 
 //functions
 void stop(int sig);

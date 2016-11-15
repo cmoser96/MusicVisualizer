@@ -20,7 +20,9 @@ int main()
     // Initializeing variables
     signal(SIGINT, stop);
 
+    // Initializing UDP server
     client = new UdpServer(server, port);
+    client->setUp();
 
     // Setting up Pulse
     ss.format = PA_SAMPLE_U8;
@@ -55,7 +57,25 @@ void leaving(){
         client->sendMessage(leave);
         client->closeClient();
         pa_simple_free(s);
-        std::cout << "disconnected" << std::endl;
+    }
+}
+
+void fourier_loop(){
+    while(true){
+        pa_simple_read(s, buf, BUFFER_SIZE, NULL);
+
+        in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
+        out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
+        p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+
+        fftw_execute(p);
+        fftw_destroy_plan(p);
+        
+        if(flag){
+            fftw_free(in);
+            fftw_free(out);
+            break;
+        }
     }
 }
 
@@ -63,23 +83,17 @@ void vu_loop(){
     int avg;
     int absolute;
 
-    client->setUp();
-
     while(true){
-        uint8_t buf[BUFFER_SIZE];
-        pa_simple_read(s, buf, sizeof(buf), NULL);
+        pa_simple_read(s, buf, BUFFER_SIZE, NULL);
         avg = 0;
-        for(int i = 0; i < sizeof(buf); i ++){
+        for(int i = 0; i < BUFFER_SIZE; i ++){
             absolute = abs(int(buf[i] - excess));
-            //avg = avg+pow(absolute, 2);
             avg = avg + absolute;
         }
-        //avg = sqrt(avg/sizeof(buf));
-        avg = avg/sizeof(buf);
+        avg = avg/BUFFER_SIZE;
         printf("\n");
         printf("%d", absolute);
 
-        //for more of a VU, send avg, for more rapid changes, send intermediate
         vu(avg);
         if(flag){
             break;
@@ -87,33 +101,9 @@ void vu_loop(){
     }
 }
 
-void fourier_loop(){
-    while(true){
-        uint8_t buf[BUFFER_SIZE];
-        pa_simple_read(s, buf, sizeof(buf), NULL);
-
-        in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
-        out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
-        p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-
-        fftw_execute(p); /* repeat as needed */
-
-        fftw_destroy_plan(p);
-        fftw_free(in);
-        fftw_free(out);
-
-        if(flag){
-            break;
-        }
-    }
-}
-
 void vu(int level){
-    /*this function splits up the value and sends it to the server
-
-    RGB green = (0,255,0)
-    RGB yellow = (255,255,0)
-    RGB red = (255,0,0)
+    /*
+    this function splits up the value and sends it to the server
     */
     if(level<64){
         redbluegreen[1] = char(level*4+3);
