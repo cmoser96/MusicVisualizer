@@ -40,8 +40,8 @@ int main()
                     );
 
     // Function calls
-    fourier_loop();
-    //vu_loop();
+    //fourier_loop();
+    vu_loop();
     leaving();
     return 0;
 }
@@ -90,7 +90,7 @@ void vu_loop(){
     while(true){
         pa_simple_read(s, buf, BUFFER_SIZE, NULL);
         avg = 0;
-        for(int i = 0; i < BUFFER_SIZE; i ++){
+        for(int i = 0; i < BUFFER_SIZE; i++){
             absolute = abs(int(buf[i] - excess));
             avg = avg + absolute;
         }
@@ -98,7 +98,7 @@ void vu_loop(){
         printf("\n");
         printf("%d", absolute);
 
-        vu(avg);
+        vu(absolute);
         if(flag){
             break;
         }
@@ -109,13 +109,8 @@ void vu(int level){
     /*
     this function splits up the value and sends it to the server
     */
-    if(level<64){
-        redbluegreen[1] = char(level*4+3);
-        redbluegreen[0] = char(255);
-    }
-    else{
-        redbluegreen[1] = char(255);;
-        redbluegreen[0] = char(abs(255 - level*2));
-    }
+    redbluegreen[0] = char(level*4);
+    redbluegreen[1] = char(level*3);
+    //redbluegreen[2] = char(level*2);
     client->sendMessage(redbluegreen);
 }

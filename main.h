@@ -9,7 +9,7 @@
 char server[] = "192.168.32.143";
 int port = 8000;
 UdpServer *client;
-char redbluegreen[4] = {char(0), char(0), char(0), char(0)};
+char redbluegreen[900];
 char leave[4] = {char(0), char(0), char(0), char(0)};
 
 //pulse variables
