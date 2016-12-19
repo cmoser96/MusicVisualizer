@@ -40,8 +40,8 @@ int main()
                     );
 
     // Function calls
-    //fourier_loop();
-    vu_loop();
+    fourier_loop();
+    //vu_loop();
     leaving();
     return 0;
 }
@@ -63,10 +63,14 @@ void leaving(){
 void fourier_loop(){
     while(true){
         pa_simple_read(s, buf, BUFFER_SIZE, NULL);
+        in = (double *) fftw_malloc(sizeof(double)*N);
 
-        in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
-        out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
-        p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+        for (int i = 0; i < N; i++){
+            in[i] = abs(buf[i] - 128);
+        }
+
+        out = (double (*)[2])fftw_malloc(sizeof(fftw_complex)*nc);
+        p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
 
         fftw_execute(p);
         fftw_destroy_plan(p);

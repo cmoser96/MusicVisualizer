@@ -6,7 +6,7 @@
 #define excess 128
 
 //udp server variables
-char server[] = "0.0.0.0";
+char server[] = "192.168.32.143";
 int port = 8000;
 UdpServer *client;
 char redbluegreen[4] = {char(0), char(0), char(0), char(0)};
@@ -21,7 +21,9 @@ volatile sig_atomic_t flag = 0;
 
 //fft variables
 int N = BUFFER_SIZE;
-fftw_complex *in, *out;
+int nc = (N/2)+1;
+double *in;
+fftw_complex *out;
 fftw_plan p;
 uint8_t buf[BUFFER_SIZE];
 
