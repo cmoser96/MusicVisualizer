@@ -73,6 +73,13 @@ void fourier_loop(){
         p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
 
         fftw_execute(p);
+        for (int i = 0; i < 900; i++)
+        {
+            data[i] = i;
+        }
+
+        client->sendMessage(data);
+
         fftw_destroy_plan(p);
         
         if(flag){
