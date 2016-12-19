@@ -26,6 +26,7 @@ double *in;
 fftw_complex *out;
 fftw_plan p;
 uint8_t buf[BUFFER_SIZE];
+char data[900];
 
 //functions
 void stop(int sig);
