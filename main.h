@@ -2,7 +2,7 @@
 #define MAIN_H
 #include <fftw3.h>
 #include "UdpServer.h"
-#define BUFFER_SIZE 44100/240
+#define BUFFER_SIZE 44100/60
 #define excess 128
 
 //udp server variables

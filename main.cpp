@@ -75,7 +75,7 @@ void fourier_loop(){
         fftw_execute(p);
         for (int i = 0; i < 900; i++)
         {
-            data[i] = i;
+            data[i] = char(i%255);
         }
 
         client->sendMessage(data);
@@ -116,8 +116,19 @@ void vu(int level){
     /*
     this function splits up the value and sends it to the server
     */
-    redbluegreen[0] = char(level*4);
-    redbluegreen[1] = char(level*3);
-    //redbluegreen[2] = char(level*2);
+    if(level<64){
+        redbluegreen[2] = char(level*4+3);
+        redbluegreen[1] = char(255);
+    }
+    else{
+        redbluegreen[2] = char(255);;
+        redbluegreen[1] = char(abs(255 - level*2));
+    }
+
+    /*for(int i =0; i<100; i++){
+        redbluegreen[3*i] = char(level*4);
+        redbluegreen[3*i+1] = char(level*3);
+        redbluegreen[3*i+2] = char(level*2); 
+    }*/
     client->sendMessage(redbluegreen);
 }
