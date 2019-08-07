@@ -17,6 +17,7 @@ int main(int argc, char* args[])
                     "Peak",
                     PA_STREAM_RECORD,
                     "alsa_output.pci-0000_00_1b.0.analog-stereo.monitor",
+                    //"alsa_output.pci-0000_00_03.0.hdmi-stereo.monitor",
                     "Recording",
                     &ss,
                     NULL,

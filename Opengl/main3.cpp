@@ -9,13 +9,14 @@
 int main(int argc, char* args[])
 {
     lower = 0;
-    upper = 4001;
+    upper = 1400;
     ss.format = PA_SAMPLE_U8;
     ss.channels = 1;
     ss.rate = SAMPLE_RATE;
     s = pa_simple_new(NULL,
                     "Peak",
                     PA_STREAM_RECORD,
+                    //"alsa_output.pci-0000_00_03.0.hdmi-stereo.monitor",
                     "alsa_output.pci-0000_00_1b.0.analog-stereo.monitor",
                     "Recording",
                     &ss,
@@ -29,7 +30,7 @@ int main(int argc, char* args[])
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(1800,950);
     glutCreateWindow("Visualizer");
-    //glutSetCursor(GLUT_CURSOR_NONE);
+    glutSetCursor(GLUT_CURSOR_NONE);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
