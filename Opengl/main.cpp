@@ -32,10 +32,9 @@ int main(int argc, char* args[])
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(1800,950);
     glutCreateWindow("Visualizer");
+    glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
+    glMatrixMode(GL_PROJECTION | GL_MODELVIEW);
     glLoadIdentity();
 
     in = (double *) fftw_malloc(sizeof(double)*N);
@@ -50,6 +49,7 @@ int main(int argc, char* args[])
     glutMainLoop();
     fftw_free(in);
     fftw_free(out);
+
     return 0;
 }
 
