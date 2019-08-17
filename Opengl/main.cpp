@@ -6,6 +6,7 @@
 #include <fftw3.h>
 
 #include "main.h"
+#include "keyboard_input.h"
 
 int main(int argc, char* args[])
 {
@@ -42,6 +43,9 @@ int main(int argc, char* args[])
 
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glutTimerFunc(1000/60, mainLoop, 0);
+
+    glutKeyboardFunc(processNormalKeys);
+    glutSpecialFunc(processSpecialKeys);
 
     glutMainLoop();
     fftw_free(in);
