@@ -1,5 +1,6 @@
 #ifndef MAIN_H
 #define MAIN_H
+#include <pulse/pulseaudio.h>
 #include <pulse/simple.h>
 
 #define BUCKETS 10
@@ -15,6 +16,8 @@ float avg;
 //Pulse
 pa_simple *s;
 pa_sample_spec ss;
+pa_context *c;
+pa_operation *op;
 
 //FFT
 int N = BUFFER_SIZE;

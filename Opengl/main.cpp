@@ -3,7 +3,6 @@
 #include <GL/freeglut.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <pulse/simple.h>
 #include <fftw3.h>
 
 #include "main.h"
@@ -39,7 +38,7 @@ int main(int argc, char* args[])
     glLoadIdentity();
 
     in = (double *) fftw_malloc(sizeof(double)*N);
-    out = (double (*)[2])fftw_malloc(sizeof(fftw_complex)*nc);
+    out = (double (*)[2]) fftw_malloc(sizeof(fftw_complex)*nc);
 
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glutTimerFunc(1000/60, mainLoop, 0);
@@ -51,7 +50,7 @@ int main(int argc, char* args[])
 }
 
 void mainLoop(int val){
-    renderFFT();
+    renderWaveform();
     glutTimerFunc(1000/1800, mainLoop, val);
 }
 
