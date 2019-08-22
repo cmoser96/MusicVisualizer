@@ -1,17 +1,23 @@
 #include "keyboard_input.h"
-#include <iostream>
 
 
 void processNormalKeys(unsigned char key, int x, int y){
 	switch(key){
 		case 27:
-			glutLeaveMainLoop();
+			glutReshapeWindow(1800,950);
 			break;
 		case 'f':
 			glutFullScreenToggle();
 			break;
 		case 's':
 			break;
+		case 'x':
+			glutLeaveMainLoop();
+			break;
+		default:
+			if(key >= '0' && key <='9'){
+
+			}
 	}
 }
 

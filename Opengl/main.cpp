@@ -32,13 +32,14 @@ int main(int argc, char* args[])
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(1800,950);
     glutCreateWindow("Visualizer");
+    glutSetCursor(GLUT_CURSOR_NONE);
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 
     glMatrixMode(GL_PROJECTION | GL_MODELVIEW);
     glLoadIdentity();
 
-    in = (double *) fftw_malloc(sizeof(double)*N);
-    out = (double (*)[2]) fftw_malloc(sizeof(fftw_complex)*nc);
+    in = fftw_alloc_real(N);
+    out = fftw_alloc_complex(nc);
 
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glutTimerFunc(1000/60, mainLoop, 0);
@@ -47,6 +48,9 @@ int main(int argc, char* args[])
     glutSpecialFunc(processSpecialKeys);
 
     glutMainLoop();
+
+    // Clean up
+    pa_simple_free(s);
     fftw_free(in);
     fftw_free(out);
 
