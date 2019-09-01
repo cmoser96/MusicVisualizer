@@ -50,7 +50,7 @@ int main(int argc, char* args[])
 }
 
 void mainLoop(int val){
-    renderWaveform();
+    renderFFT();
     glutTimerFunc(1000/1800, mainLoop, val);
 }
 
