@@ -6,9 +6,13 @@
 #include <fftw3.h>
 
 #include "main.h"
+#include "pulse_interface.h"
 
 int main(int argc, char* args[])
 {
+    pulse_interface::init_context();
+    pulse_interface::get_sinks();
+    std::string sink_name = pulse_interface::get_active_sink_name()+".monitor";
     lower = 0;
     upper = 1400;
     ss.format = PA_SAMPLE_U8;
@@ -17,8 +21,7 @@ int main(int argc, char* args[])
     s = pa_simple_new(NULL,
                     "Peak",
                     PA_STREAM_RECORD,
-                    "alsa_output.pci-0000_00_1b.0.analog-stereo.monitor",
-                    //"alsa_output.pci-0000_00_03.0.hdmi-stereo.monitor",
+                    sink_name .c_str(),
                     "Recording",
                     &ss,
                     NULL,
@@ -46,6 +49,9 @@ int main(int argc, char* args[])
     glutMainLoop();
     fftw_free(in);
     fftw_free(out);
+    pa_simple_free(s);
+    pulse_interface::deinit_context();
+
     return 0;
 }
 
