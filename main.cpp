@@ -1,33 +1,24 @@
-/* Carl Moser and Ian Paul
-*  Fall 2016 Music Visualizer
-*/
+#include <iostream>
+#include <string.h>
+#include <GL/freeglut.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <fftw3.h>
 
-//include for my own header file
 #include "main.h"
 
-//includes for printing/closing properly
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
-#include <signal.h>
-
-int main()
+int main(int argc, char* args[])
 {
-    // Initializeing variables
-    signal(SIGINT, stop);
-
-    // Initializing UDP server
-    server = new UdpServer(ip_address, port);
-    server->setUp();
-
-    // Setting up Pulse
+    lower = 0;
+    upper = 1400;
     ss.format = PA_SAMPLE_U8;
     ss.channels = 1;
-    ss.rate = 44100;
+    ss.rate = SAMPLE_RATE;
     s = pa_simple_new(NULL,
                     "Peak",
                     PA_STREAM_RECORD,
                     "alsa_output.pci-0000_00_1b.0.analog-stereo.monitor",
+                    //"alsa_output.pci-0000_00_03.0.hdmi-stereo.monitor",
                     "Recording",
                     &ss,
                     NULL,
@@ -35,99 +26,122 @@ int main()
                     NULL
                     );
 
-    // Function calls
-    //fourier_loop();
-    vu_loop();
-    leaving();
+    glutInit(&argc, args);
+    glutInitContextVersion(3,0);
+    glutInitDisplayMode(GLUT_DOUBLE);
+    glutInitWindowSize(1800,950);
+    glutCreateWindow("Visualizer");
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    in = (double *) fftw_malloc(sizeof(double)*N);
+    out = (double (*)[2]) fftw_malloc(sizeof(fftw_complex)*nc);
+
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glutTimerFunc(1000/60, mainLoop, 0);
+
+    glutMainLoop();
+    fftw_free(in);
+    fftw_free(out);
     return 0;
 }
 
-void stop(int sig){
-    //this function changes flag if ctrl+c is pressed
-    flag = 1;
+void mainLoop(int val){
+    renderWaveform();
+    glutTimerFunc(1000/1800, mainLoop, val);
 }
 
-void leaving(){
-    //this function closes all of the open connections
-    if(s){
-        server->sendMessage(leave, sizeof(leave)/sizeof(leave[0]));
-        server->closeServer();
-        pa_simple_free(s);
+void renderBouncy(){
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    uint8_t buf[BUFFER_SIZE];
+    pa_simple_read(s, buf, sizeof(buf), NULL);
+    float avg = 0;
+    for(int i = 0; i < sizeof(buf); i ++){
+        avg = avg+abs(int(buf[i] - 128));
     }
+    avg = avg/(sizeof(buf)*140);
+
+    glBegin(GL_QUADS);
+    glColor3f(1.0f, 0.6f, 0.0f);
+    glVertex2f(-avg-.5, -avg-.5);
+    glVertex2f(avg-.5, -avg-.5);
+    glVertex2f(avg-.5, avg-.5);
+    glVertex2f(-avg-.5, avg-.5);
+    glEnd();
+
+    glBegin(GL_QUADS);
+    glColor3f(1.0f, 0.6f, 0.0f);
+    glVertex2f(-avg-.5, -avg+.5);
+    glVertex2f(avg-.5, -avg+.5);
+    glVertex2f(avg-.5, avg+.5);
+    glVertex2f(-avg-.5, avg+.5);
+    glEnd();
+
+    glBegin(GL_QUADS);
+    glColor3f(1.0f, 0.6f, 0.0f);
+    glVertex2f(-avg+.5, -avg-.5);
+    glVertex2f(avg+.5, -avg-.5);
+    glVertex2f(avg+.5, avg-.5);
+    glVertex2f(-avg+.5, avg-.5);
+    glEnd();
+
+    glBegin(GL_QUADS);
+    glColor3f(1.0f, 0.6f, 0.0f);
+    glVertex2f(-avg+.5, -avg+.5);
+    glVertex2f(avg+.5, -avg+.5);
+    glVertex2f(avg+.5, avg+.5);
+    glVertex2f(-avg+.5, avg+.5);
+    glEnd();
+
+    glutSwapBuffers();
 }
 
-void fourier_loop(){
-    in = fftw_alloc_real(N);
-    out = fftw_alloc_complex(nc);
+void renderWaveform(){
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    while(true){
-        pa_simple_read(s, buf, BUFFER_SIZE, NULL);
-
-        for (int i = 0; i < N; i++){
-            in[i] = abs(buf[i] - 128);
-        }
-
-        p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
-        fftw_execute(p);
-
-        for (int i = 0; i < 900; i++)
-        {
-            data[i] = char(i%255);
-        }
-
-        // For most things, this is way too big of a single message
-        // TODO: break it up
-        server->sendMessage(data, sizeof(data)/sizeof(data[0]));
-
-        fftw_destroy_plan(p);
-        
-        if(flag){
-            fftw_free(in);
-            fftw_free(out);
-            break;
-        }
+    glBegin (GL_LINES);
+    glColor3f(1.0f, 0.6f, 0.0f);
+    glLineWidth(2.f);
+    static uint8_t buf[DOUBLE_BUFFER];
+    memcpy(buf, (buf+BUFFER_SIZE), BUFFER_SIZE);
+    pa_simple_read(s, (buf+BUFFER_SIZE), BUFFER_SIZE, NULL);
+    for(int i = 0; i < DOUBLE_BUFFER; i ++){
+        glVertex2f(-1.f + 2*float(i)/sizeof(buf), float(int(buf[i] - 128))/364);
     }
+    glEnd();
+
+    glutSwapBuffers();
 }
 
-void vu_loop(){
-    int avg;
-    int absolute;
 
-    while(true){
-        pa_simple_read(s, buf, BUFFER_SIZE, NULL);
-        avg = 0;
-        for(int i = 0; i < BUFFER_SIZE; i++){
-            absolute = abs(int(buf[i] - EXCESS));
-            avg = avg + absolute;
-        }
-        avg = avg/BUFFER_SIZE;
-        printf("\n");
-        printf("%d", absolute);
+void renderFFT(){
+    glClear(GL_COLOR_BUFFER_BIT);
 
-        vu(absolute);
-        if(flag){
-            break;
-        }
+    pa_simple_read(s, buf, BUFFER_SIZE, NULL);
+    for (int i = 0; i < N; i++){
+        in[i] = abs(buf[i] - 128);
     }
+
+    p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
+    fftw_execute(p);
+
+    for(int i = lower; i < upper; i ++){
+        glBegin (GL_LINES);
+        glColor3f(1.0f, 0.6f, 0.0f);
+        glLineWidth(3.f);
+        glVertex2f(-1.f + 2*float(i)/(upper+lower), -1.f);
+        glVertex2f(-1.f + 2*float(i)/(upper+lower), (float)abs(out[i][0])/10000-1);
+        glEnd();
+    }
+
+    fftw_destroy_plan(p);
+
+    glutSwapBuffers();
 }
 
-void vu(int level){
-    /*
-    this function splits up the value and sends it to the server
-    */
-    if(level<64){
-        redbluegreen[2] = char(level*4+3);
-        redbluegreen[1] = char(255);
-    }
-    else{
-        redbluegreen[2] = char(255);;
-        redbluegreen[1] = char(abs(255 - level*2));
-    }
-
-    /*for(int i =0; i<100; i++){
-        redbluegreen[3*i] = char(level*4);
-        redbluegreen[3*i+1] = char(level*3);
-        redbluegreen[3*i+2] = char(level*2); 
-    }*/
-    server->sendMessage(redbluegreen, sizeof(redbluegreen)/sizeof(redbluegreen[0]));
+void bucket(){
 }
