@@ -2,18 +2,14 @@
 *  Fall 2016 Music Visualizer
 */
 
+//include for my own header file
+#include "main.h"
+
 //includes for printing/closing properly
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
 #include <signal.h>
-
-//include for pulse
-#include <pulse/simple.h>
-
-//include for my own header file
-#include "main.h"
-#include "UdpServer.h"
 
 int main()
 {
@@ -21,8 +17,8 @@ int main()
     signal(SIGINT, stop);
 
     // Initializing UDP server
-    client = new UdpServer(server, port);
-    client->setUp();
+    server = new UdpServer(ip_address, port);
+    server->setUp();
 
     // Setting up Pulse
     ss.format = PA_SAMPLE_U8;
@@ -54,31 +50,34 @@ void stop(int sig){
 void leaving(){
     //this function closes all of the open connections
     if(s){
-        client->sendMessage(leave);
-        client->closeClient();
+        server->sendMessage(leave, sizeof(leave)/sizeof(leave[0]));
+        server->closeServer();
         pa_simple_free(s);
     }
 }
 
 void fourier_loop(){
+    in = fftw_alloc_real(N);
+    out = fftw_alloc_complex(nc);
+
     while(true){
         pa_simple_read(s, buf, BUFFER_SIZE, NULL);
-        in = (double *) fftw_malloc(sizeof(double)*N);
 
         for (int i = 0; i < N; i++){
             in[i] = abs(buf[i] - 128);
         }
 
-        out = (double (*)[2])fftw_malloc(sizeof(fftw_complex)*nc);
         p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
-
         fftw_execute(p);
+
         for (int i = 0; i < 900; i++)
         {
             data[i] = char(i%255);
         }
 
-        client->sendMessage(data);
+        // For most things, this is way too big of a single message
+        // TODO: break it up
+        server->sendMessage(data, sizeof(data)/sizeof(data[0]));
 
         fftw_destroy_plan(p);
         
@@ -98,7 +97,7 @@ void vu_loop(){
         pa_simple_read(s, buf, BUFFER_SIZE, NULL);
         avg = 0;
         for(int i = 0; i < BUFFER_SIZE; i++){
-            absolute = abs(int(buf[i] - excess));
+            absolute = abs(int(buf[i] - EXCESS));
             avg = avg + absolute;
         }
         avg = avg/BUFFER_SIZE;
@@ -130,5 +129,5 @@ void vu(int level){
         redbluegreen[3*i+1] = char(level*3);
         redbluegreen[3*i+2] = char(level*2); 
     }*/
-    client->sendMessage(redbluegreen);
+    server->sendMessage(redbluegreen, sizeof(redbluegreen)/sizeof(redbluegreen[0]));
 }
