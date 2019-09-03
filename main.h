@@ -1,14 +1,17 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef MUSICVISUALIZER_MAIN_H
+#define MUSICVISUALIZER_MAIN_H
+
 #include <fftw3.h>
 #include "UdpServer.h"
+#include <pulse/simple.h>
+
 #define BUFFER_SIZE 44100/60
-#define excess 128
+#define EXCESS 128
 
 //udp server variables
-char server[] = "192.168.32.143";
+char ip_address[] = "192.168.32.143";
 int port = 8000;
-UdpServer *client;
+UdpServer *server;
 char redbluegreen[900];
 char leave[4] = {char(0), char(0), char(0), char(0)};
 
@@ -35,4 +38,4 @@ void vu_loop();
 void fourier_loop();
 void vu(int level);
 
-#endif
+#endif //MUSICVISUALIZER_MAIN_H

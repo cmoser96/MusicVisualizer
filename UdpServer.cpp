@@ -24,11 +24,11 @@ int UdpServer::setUp(){
     }
 }
 
-void UdpServer::sendMessage(char message[]){
-    sendto(m_sock, message ,sizeof(message), 0, (struct sockaddr *)&m_myaddr, sizeof(m_myaddr));
+void UdpServer::sendMessage(char *message, int len){
+    sendto(m_sock, message, len, 0, (struct sockaddr *)&m_myaddr, sizeof(m_myaddr));
 }
 
-void UdpServer::closeClient(){
+void UdpServer::closeServer(){
     close(m_sock);
 }
 
