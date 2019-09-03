@@ -1,41 +1,39 @@
-#ifndef MUSICVISUALIZER_MAIN_H
-#define MUSICVISUALIZER_MAIN_H
-
-#include <fftw3.h>
-#include "UdpServer.h"
+#ifndef MAIN_H
+#define MAIN_H
+#include <pulse/pulseaudio.h>
 #include <pulse/simple.h>
 
-#define BUFFER_SIZE 44100/60
-#define EXCESS 128
+#define BUCKETS 10
+#define SAMPLE_RATE 192000
+#define FRAME_RATE 30
+#define BUFFER_SIZE SAMPLE_RATE/FRAME_RATE
+#define DOUBLE_BUFFER 2*BUFFER_SIZE
 
-//udp server variables
-char ip_address[] = "192.168.32.143";
-int port = 8000;
-UdpServer *server;
-char redbluegreen[900];
-char leave[4] = {char(0), char(0), char(0), char(0)};
+//Opengl
+const float r = .5f;
+float avg;
 
-//pulse variables
+//Pulse
 pa_simple *s;
 pa_sample_spec ss;
+pa_context *c;
+pa_operation *op;
 
-//flag
-volatile sig_atomic_t flag = 0;
-
-//fft variables
+//FFT
 int N = BUFFER_SIZE;
 int nc = (N/2)+1;
 double *in;
 fftw_complex *out;
 fftw_plan p;
 uint8_t buf[BUFFER_SIZE];
-char data[900];
+int lower;
+int upper;
 
-//functions
-void stop(int sig);
-void leaving();
-void vu_loop();
-void fourier_loop();
-void vu(int level);
+void mainLoop(int val);
+void renderBouncy();
+void renderWaveform();
+void renderFFT();
+void bucket();
 
-#endif //MUSICVISUALIZER_MAIN_H
+
+#endif // MAIN_H
