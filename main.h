@@ -19,8 +19,7 @@ pa_simple *s;
 pa_sample_spec ss;
 
 //FFT
-const int N = BUFFER_SIZE;
-const int nc = (N/2)+1;
+const int nc = (BUFFER_SIZE/2)+1;
 double *in;
 fftw_complex *out;
 fftw_plan p;

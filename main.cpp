@@ -38,7 +38,7 @@ int main(int argc, char* args[])
     glMatrixMode(GL_PROJECTION | GL_MODELVIEW);
     glLoadIdentity();
 
-    in = fftw_alloc_real(N);
+    in = fftw_alloc_real(BUFFER_SIZE);
     out = fftw_alloc_complex(nc);
 
     glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -61,8 +61,8 @@ void mainLoop(int val){
 void renderBouncy(){
     glClear(GL_COLOR_BUFFER_BIT);
 
-    uint8_t buf[BUFFER_SIZE];
     pa_simple_read(s, buf, sizeof(buf), NULL);
+
     float avg = 0;
     for(int i = 0; i < sizeof(buf); i ++){
         avg = avg+abs(int(buf[i] - 128));
@@ -110,6 +110,8 @@ void renderWaveform(){
     glBegin (GL_LINES);
     glColor3f(1.0f, 0.6f, 0.0f);
     glLineWidth(2.f);
+    // This local var is the same name as global
+    // Eventually want maybe triple/quad buffersize
     static uint8_t buf[DOUBLE_BUFFER];
     memcpy(buf, (buf+BUFFER_SIZE), BUFFER_SIZE);
     pa_simple_read(s, (buf+BUFFER_SIZE), BUFFER_SIZE, NULL);
@@ -126,11 +128,11 @@ void renderFFT(){
     glClear(GL_COLOR_BUFFER_BIT);
 
     pa_simple_read(s, buf, BUFFER_SIZE, NULL);
-    for (int i = 0; i < N; i++){
+    for (int i = 0; i < BUFFER_SIZE; i++){
         in[i] = abs(buf[i] - 128);
     }
 
-    p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
+    p = fftw_plan_dft_r2c_1d(BUFFER_SIZE, in, out, FFTW_ESTIMATE);
     fftw_execute(p);
 
     for(int i = LOWER; i < UPPER; i ++){
