@@ -1,6 +1,5 @@
-#ifndef MUSICVISUALIZER_MAIN_H
-#define MUSICVISUALIZER_MAIN_H
-
+#ifndef MAIN_H
+#define MAIN_H
 #include <pulse/pulseaudio.h>
 #include <pulse/simple.h>
 
@@ -17,21 +16,24 @@ float avg;
 //Pulse
 pa_simple *s;
 pa_sample_spec ss;
+pa_context *c;
+pa_operation *op;
 
 //FFT
-const int nc = (BUFFER_SIZE/2)+1;
+int N = BUFFER_SIZE;
+int nc = (N/2)+1;
 double *in;
 fftw_complex *out;
 fftw_plan p;
 uint8_t buf[BUFFER_SIZE];
-const int LOWER = 0;
-const int UPPER = 1400;
+int lower;
+int upper;
 
-//Functions
 void mainLoop(int val);
 void renderBouncy();
 void renderWaveform();
 void renderFFT();
 void bucket();
 
-#endif // MUSICVISUALIZER_MAIN_H
+
+#endif // MAIN_H
