@@ -13,8 +13,7 @@ int main(int argc, char* args[])
     pulse_interface::init_context();
     pulse_interface::get_sinks();
     std::string sink_name = pulse_interface::get_active_sink_name()+".monitor";
-    lower = 0;
-    upper = 1400;
+
     ss.format = PA_SAMPLE_U8;
     ss.channels = 1;
     ss.rate = SAMPLE_RATE;
@@ -34,14 +33,13 @@ int main(int argc, char* args[])
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(1800,950);
     glutCreateWindow("Visualizer");
+    glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
+    glMatrixMode(GL_PROJECTION | GL_MODELVIEW);
     glLoadIdentity();
 
-    in = (double *) fftw_malloc(sizeof(double)*N);
-    out = (double (*)[2]) fftw_malloc(sizeof(fftw_complex)*nc);
+    in = fftw_alloc_real(N);
+    out = fftw_alloc_complex(nc);
 
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glutTimerFunc(1000/60, mainLoop, 0);
@@ -56,7 +54,7 @@ int main(int argc, char* args[])
 }
 
 void mainLoop(int val){
-    renderFFT();
+    renderWaveform();
     glutTimerFunc(1000/1800, mainLoop, val);
 }
 
@@ -135,12 +133,12 @@ void renderFFT(){
     p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
     fftw_execute(p);
 
-    for(int i = lower; i < upper; i ++){
+    for(int i = LOWER; i < UPPER; i ++){
         glBegin (GL_LINES);
         glColor3f(1.0f, 0.6f, 0.0f);
         glLineWidth(3.f);
-        glVertex2f(-1.f + 2*float(i)/(upper+lower), -1.f);
-        glVertex2f(-1.f + 2*float(i)/(upper+lower), (float)abs(out[i][0])/10000-1);
+        glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), -1.f);
+        glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), (float)abs(out[i][0])/10000-1);
         glEnd();
     }
 
