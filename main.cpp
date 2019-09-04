@@ -6,19 +6,21 @@
 #include <fftw3.h>
 
 #include "main.h"
+#include "pulse_interface.h"
 
 int main(int argc, char* args[])
 {
-    lower = 0;
-    upper = 1400;
+    pulse_interface::init_context();
+    pulse_interface::get_sinks();
+    std::string sink_name = pulse_interface::get_active_sink_name()+".monitor";
+
     ss.format = PA_SAMPLE_U8;
     ss.channels = 1;
     ss.rate = SAMPLE_RATE;
     s = pa_simple_new(NULL,
                     "Peak",
                     PA_STREAM_RECORD,
-                    "alsa_output.pci-0000_00_1b.0.analog-stereo.monitor",
-                    //"alsa_output.pci-0000_00_03.0.hdmi-stereo.monitor",
+                    sink_name .c_str(),
                     "Recording",
                     &ss,
                     NULL,
@@ -31,14 +33,13 @@ int main(int argc, char* args[])
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(1800,950);
     glutCreateWindow("Visualizer");
+    glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
+    glMatrixMode(GL_PROJECTION | GL_MODELVIEW);
     glLoadIdentity();
 
-    in = (double *) fftw_malloc(sizeof(double)*N);
-    out = (double (*)[2]) fftw_malloc(sizeof(fftw_complex)*nc);
+    in = fftw_alloc_real(BUFFER_SIZE);
+    out = fftw_alloc_complex(nc);
 
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glutTimerFunc(1000/60, mainLoop, 0);
@@ -46,6 +47,9 @@ int main(int argc, char* args[])
     glutMainLoop();
     fftw_free(in);
     fftw_free(out);
+    pa_simple_free(s);
+    pulse_interface::deinit_context();
+
     return 0;
 }
 
@@ -57,8 +61,8 @@ void mainLoop(int val){
 void renderBouncy(){
     glClear(GL_COLOR_BUFFER_BIT);
 
-    uint8_t buf[BUFFER_SIZE];
     pa_simple_read(s, buf, sizeof(buf), NULL);
+
     float avg = 0;
     for(int i = 0; i < sizeof(buf); i ++){
         avg = avg+abs(int(buf[i] - 128));
@@ -106,6 +110,8 @@ void renderWaveform(){
     glBegin (GL_LINES);
     glColor3f(1.0f, 0.6f, 0.0f);
     glLineWidth(2.f);
+    // This local var is the same name as global
+    // Eventually want maybe triple/quad buffersize
     static uint8_t buf[DOUBLE_BUFFER];
     memcpy(buf, (buf+BUFFER_SIZE), BUFFER_SIZE);
     pa_simple_read(s, (buf+BUFFER_SIZE), BUFFER_SIZE, NULL);
@@ -122,19 +128,19 @@ void renderFFT(){
     glClear(GL_COLOR_BUFFER_BIT);
 
     pa_simple_read(s, buf, BUFFER_SIZE, NULL);
-    for (int i = 0; i < N; i++){
+    for (int i = 0; i < BUFFER_SIZE; i++){
         in[i] = abs(buf[i] - 128);
     }
 
-    p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
+    p = fftw_plan_dft_r2c_1d(BUFFER_SIZE, in, out, FFTW_ESTIMATE);
     fftw_execute(p);
 
-    for(int i = lower; i < upper; i ++){
+    for(int i = LOWER; i < UPPER; i ++){
         glBegin (GL_LINES);
         glColor3f(1.0f, 0.6f, 0.0f);
         glLineWidth(3.f);
-        glVertex2f(-1.f + 2*float(i)/(upper+lower), -1.f);
-        glVertex2f(-1.f + 2*float(i)/(upper+lower), (float)abs(out[i][0])/10000-1);
+        glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), -1.f);
+        glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), (float)abs(out[i][0])/10000-1);
         glEnd();
     }
 
