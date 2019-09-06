@@ -5,7 +5,9 @@
 
 namespace pulse_interface{
 	void init_context();
+	void init_stream();
 	void deinit_context();
+	void deinit_stream();
 	int get_sinks();
 	std::string get_active_sink_name();
 }
