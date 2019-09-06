@@ -37,7 +37,8 @@ namespace pulse_interface{
         pa_context *pa_c;
         pa_stream *pa_s;
         pa_operation *pa_op;
-        pa_context_state_t state;
+        pa_context_state_t context_state;
+        pa_stream_state_t stream_state;
         bool ml_locked = false;
 
 
@@ -73,10 +74,19 @@ namespace pulse_interface{
             pa_threaded_mainloop_signal(m, 0);
         }
 
+        /*
+        ** Callback for reading from the stream
+        */
         void stream_read_cb(pa_stream *stream, size_t nbytes, void *userdata) {
             // TODO
         }
 
+        /*
+        ** Callback for reading from the stream
+        */
+        void stream_success_cb(pa_stream *stream, int success, void *userdata){
+            return;
+        }
     } // namespace
 
     /*
@@ -98,12 +108,12 @@ namespace pulse_interface{
         pa_context_connect(pa_c, NULL, PA_CONTEXT_NOAUTOSPAWN, NULL);
 
         for(;;){
-            state = pa_context_get_state(pa_c);
-            if(!PA_CONTEXT_IS_GOOD(state)){
+            context_state = pa_context_get_state(pa_c);
+            if(!PA_CONTEXT_IS_GOOD(context_state)){
                 deinit_context();
                 return;
             }
-            if(state == PA_CONTEXT_READY){
+            if(context_state == PA_CONTEXT_READY){
                 break;
             }
             pa_threaded_mainloop_wait(pa_ml);
@@ -128,8 +138,41 @@ namespace pulse_interface{
         pa_s = pa_stream_new(pa_c, "Recording", &sample_spec, &map);
         pa_stream_set_state_callback(pa_s, stream_state_cb, pa_ml);
         pa_stream_set_read_callback(pa_s, stream_read_cb, pa_ml);
+
+        pa_buffer_attr buffer_attr;
+        buffer_attr.maxlength = (uint32_t)-1;
+        buffer_attr.fragsize = (uint32_t)-1;
+
+        pa_stream_flags_t stream_flags;
+        stream_flags = (pa_stream_flags_t)(PA_STREAM_START_CORKED | PA_STREAM_INTERPOLATE_TIMING | 
+        PA_STREAM_NOT_MONOTONIC | PA_STREAM_AUTO_TIMING_UPDATE |
+        PA_STREAM_ADJUST_LATENCY);
+
+        pa_threaded_mainloop_lock(pa_ml);
+        ml_locked = true;
+
+        pa_stream_connect_playback(pa_s, NULL, &buffer_attr, stream_flags, NULL, NULL);
+
+        for(;;){
+            stream_state = pa_stream_get_state(pa_s);
+            if(!PA_STREAM_IS_GOOD(stream_state)){
+                deinit_context();
+                return;
+            }
+            if(stream_state == PA_STREAM_READY){
+                break;
+            }
+            pa_threaded_mainloop_wait(pa_ml);
+        }
+
+        pa_threaded_mainloop_unlock(pa_ml);
+        ml_locked = false;
+        pa_stream_cork(pa_s, 0, stream_success_cb, pa_ml);
     }
 
+    /*
+    ** Function for freeing variables
+    */
     void deinit_stream(){
         pa_stream_disconnect(pa_s);
         pa_stream_unref(pa_s);
