@@ -5,7 +5,7 @@
 
 namespace pulse_interface{
 	void init_context();
-	void init_stream();
+	void init_stream(std::string dev);
 	void deinit_context();
 	void deinit_stream();
 	int get_sinks();

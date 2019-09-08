@@ -40,6 +40,7 @@ namespace pulse_interface{
         pa_context_state_t context_state;
         pa_stream_state_t stream_state;
         bool ml_locked = false;
+        const void *read_data;
 
 
         // Callback Functions
@@ -77,14 +78,15 @@ namespace pulse_interface{
         /*
         ** Callback for reading from the stream
         */
-        void stream_read_cb(pa_stream *stream, size_t nbytes, void *userdata) {
-            // TODO
+        void stream_read_cb(pa_stream *stream, size_t nbytes, void *mainloop) {
+            pa_threaded_mainloop *m = reinterpret_cast<pa_threaded_mainloop*>(mainloop);
+            pa_threaded_mainloop_signal(m, 0);
         }
 
         /*
         ** Callback for reading from the stream
         */
-        void stream_success_cb(pa_stream *stream, int success, void *userdata){
+        void stream_success_cb(pa_stream *stream, int success, void *mainloop){
             return;
         }
     } // namespace
@@ -126,7 +128,7 @@ namespace pulse_interface{
     /*
     ** Function for initializing the PA recording stream
     */
-    void init_stream(){
+    void init_stream(std::string dev){
         pa_sample_spec sample_spec;
         sample_spec.format = PA_SAMPLE_U8;
         sample_spec.rate = 44100;
@@ -144,14 +146,15 @@ namespace pulse_interface{
         buffer_attr.fragsize = (uint32_t)-1;
 
         pa_stream_flags_t stream_flags;
-        stream_flags = (pa_stream_flags_t)(PA_STREAM_START_CORKED | PA_STREAM_INTERPOLATE_TIMING | 
-        PA_STREAM_NOT_MONOTONIC | PA_STREAM_AUTO_TIMING_UPDATE |
+        stream_flags = (pa_stream_flags_t)(PA_STREAM_START_CORKED | 
+        PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_AUTO_TIMING_UPDATE |
         PA_STREAM_ADJUST_LATENCY);
 
         pa_threaded_mainloop_lock(pa_ml);
         ml_locked = true;
 
-        pa_stream_connect_playback(pa_s, NULL, &buffer_attr, stream_flags, NULL, NULL);
+        dev = dev +".monitor";
+        pa_stream_connect_record(pa_s, dev.c_str(), &buffer_attr, stream_flags);
 
         for(;;){
             stream_state = pa_stream_get_state(pa_s);
@@ -167,6 +170,7 @@ namespace pulse_interface{
 
         pa_threaded_mainloop_unlock(pa_ml);
         ml_locked = false;
+
         pa_stream_cork(pa_s, 0, stream_success_cb, pa_ml);
     }
 
