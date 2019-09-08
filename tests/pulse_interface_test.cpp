@@ -1,4 +1,4 @@
-#include "../pulse_interface.h"
+#include "../include/pulse_interface.h"
 #include <iostream>
 
 int main(int argc, char* args[]){
