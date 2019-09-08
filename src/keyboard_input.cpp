@@ -1,4 +1,4 @@
-#include "keyboard_input.h"
+#include "../include/keyboard_input.h"
 
 
 void processNormalKeys(unsigned char key, int x, int y){
