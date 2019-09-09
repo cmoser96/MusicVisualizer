@@ -7,6 +7,7 @@
 
 #include "main.h"
 #include "pulse_interface.h"
+#include "keyboard_input.h"
 
 int main(int argc, char* args[])
 {
@@ -33,6 +34,7 @@ int main(int argc, char* args[])
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(1800,950);
     glutCreateWindow("Visualizer");
+    glutSetCursor(GLUT_CURSOR_NONE);
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 
     glMatrixMode(GL_PROJECTION | GL_MODELVIEW);
@@ -44,12 +46,15 @@ int main(int argc, char* args[])
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glutTimerFunc(1000/60, mainLoop, 0);
 
+    glutKeyboardFunc(processNormalKeys);
+    glutSpecialFunc(processSpecialKeys);
+
     glutMainLoop();
+
+    // Clean up
+    pa_simple_free(s);
     fftw_free(in);
     fftw_free(out);
-    pa_simple_free(s);
-    pulse_interface::deinit_context();
-
     return 0;
 }
 
