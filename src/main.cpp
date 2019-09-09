@@ -4,6 +4,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <fftw3.h>
+#include <cmath>
 
 #include "main.h"
 #include "pulse_interface.h"
@@ -44,6 +45,10 @@ int main(int argc, char* args[])
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glutTimerFunc(1000/60, mainLoop, 0);
 
+    for(int i=0; i<UPPER; i++){
+        correct[i] = .0003*i;
+    }
+
     glutMainLoop();
     fftw_free(in);
     fftw_free(out);
@@ -54,7 +59,7 @@ int main(int argc, char* args[])
 }
 
 void mainLoop(int val){
-    renderWaveform();
+    renderFFT();
     glutTimerFunc(1000/1800, mainLoop, val);
 }
 
@@ -140,7 +145,8 @@ void renderFFT(){
         glColor3f(1.0f, 0.6f, 0.0f);
         glLineWidth(3.f);
         glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), -1.f);
-        glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), (float)abs(out[i][0])/10000-1);
+        float val = (float)(log(fabs(out[i][0]))+correct[i])/10;
+        glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), val-1.45);
         glEnd();
     }
 
