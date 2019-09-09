@@ -30,9 +30,7 @@ float correct[1315];
 
 //Functions
 void mainLoop(int val);
-void renderBouncy();
-void renderWaveform();
-void renderFFT();
+void render();
 void bucket();
 
 #endif // MUSICVISUALIZER_MAIN_H
