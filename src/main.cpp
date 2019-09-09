@@ -46,7 +46,7 @@ int main(int argc, char* args[])
     glutTimerFunc(1000/60, mainLoop, 0);
 
     for(int i=0; i<UPPER; i++){
-        correct[i] = .0003*i;
+        correct[i] = .0004*i;
     }
 
     glutMainLoop();
@@ -70,9 +70,8 @@ void render(){
 
     // This local var is the same name as global
     // Eventually want maybe triple/quad buffersize
-    static uint8_t buf2[DOUBLE_BUFFER];
-    memcpy(buf2, (buf2+BUFFER_SIZE), BUFFER_SIZE);
-    memcpy((buf2+BUFFER_SIZE), buf, BUFFER_SIZE);
+    memcpy(dub_buf, (dub_buf+BUFFER_SIZE), BUFFER_SIZE);
+    memcpy((dub_buf+BUFFER_SIZE), buf, BUFFER_SIZE);
 
     for (int i = 0; i < BUFFER_SIZE; i++){
         in[i] = abs(buf[i] - 128);
@@ -88,7 +87,7 @@ void render(){
     glColor3f(1.0f, 0.6f, 0.0f);
     glLineWidth(2.f);
     for(int i = 0; i < DOUBLE_BUFFER; i ++){
-        glVertex2f(-1.f + 2*float(i)/sizeof(buf2), float(int(buf2[i]))/364);
+        glVertex2f(-1.f + 2*float(i)/sizeof(dub_buf), float(int(dub_buf[i]))/364);
     }
     glEnd();
 
@@ -98,8 +97,10 @@ void render(){
         glColor3f(1.0f, 0.6f, 0.0f);
         glLineWidth(3.f);
         glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), -1.f);
-        float val = (float)(log(fabs(out[i][0]))+correct[i])/10;
-        glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), val-1.45);
+        //float val = (float)(log(fabs(out[i][0]))+correct[i])/6;
+        //glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), val-1.9);
+        float val = (float)(log10(fabs(out[i][0])))/3;
+        glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), val-1.8);
         glEnd();
     }
 

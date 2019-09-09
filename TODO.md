@@ -7,3 +7,4 @@
 - [x] reorganize code into src/ and include/ folders
 - [ ] add some documentation for dependencies/use
 - [ ] add basic functionality of switching rendering functions without having to recompile
+- [ ] look into splitting up the FFT rendering based on frequency ranges (bass seems consistently high with little change)

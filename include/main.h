@@ -24,9 +24,10 @@ double *in;
 fftw_complex *out;
 fftw_plan p;
 uint8_t buf[BUFFER_SIZE];
+uint8_t dub_buf[DOUBLE_BUFFER];
 const int LOWER = 1;
 const int UPPER = 1315;
-float correct[1315];
+float correct[UPPER] = {0};
 
 //Functions
 void mainLoop(int val);
