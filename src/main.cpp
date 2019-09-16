@@ -16,6 +16,7 @@ int main(int argc, char* args[])
     pulse_interface::get_sinks();
     std::string sink_name = pulse_interface::get_active_sink_name()+".monitor";
 
+    // Init pulse connection
     ss.format = PA_SAMPLE_U8;
     ss.channels = 1;
     ss.rate = SAMPLE_RATE;
@@ -30,30 +31,34 @@ int main(int argc, char* args[])
                     NULL
                     );
 
+    // Init glut window w/ options
     glutInit(&argc, args);
     glutInitContextVersion(3,0);
-    glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(1800,950);
     glutCreateWindow("Visualizer");
+    glEnable(GL_BLEND);
+    glEnable(GL_LINE_SMOOTH);
     glutSetCursor(GLUT_CURSOR_NONE);
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(false);
 
-    glMatrixMode(GL_PROJECTION | GL_MODELVIEW);
-    glLoadIdentity();
+    // glut functions
+    glutDisplayFunc(render);
+    glutTimerFunc(1000/60, mainLoop, 0);
+    glutIdleFunc(NULL);
+    glutKeyboardFunc(processNormalKeys);
+    glutSpecialFunc(processSpecialKeys);
+
+    // Other init
+    for(int i=0; i<UPPER; i++){
+        correct[i] = .0003*i;
+    }
 
     in = fftw_alloc_real(BUFFER_SIZE);
     out = fftw_alloc_complex(nc);
 
-    glClearColor(0.f, 0.f, 0.f, 1.f);
-    glutTimerFunc(1000/60, mainLoop, 0);
-
-    for(int i=0; i<UPPER; i++){
-        correct[i] = .0004*i;
-    }
-
-    glutKeyboardFunc(processNormalKeys);
-    glutSpecialFunc(processSpecialKeys);
-
+    // Start the mainloop
     glutMainLoop();
 
     // Clean up
@@ -64,8 +69,8 @@ int main(int argc, char* args[])
 }
 
 void mainLoop(int val){
-    render();
-    glutTimerFunc(1000/1800, mainLoop, val);
+    glutPostRedisplay();
+    glutTimerFunc(1000/60, mainLoop, val);
 }
 
 void render(){
@@ -88,10 +93,10 @@ void render(){
     fftw_destroy_plan(p);
 
     // Render waveform
-    glBegin (GL_LINES);
+    glBegin (GL_LINE_STRIP);
     glColor3f(1.0f, 0.6f, 0.0f);
-    glLineWidth(2.f);
-    for(int i = 0; i < DOUBLE_BUFFER; i ++){
+    glLineWidth(0.1f);
+    for(int i = 0; i < DOUBLE_BUFFER-1; i ++){
         glVertex2f(-1.f + 2*float(i)/sizeof(dub_buf), float(int(dub_buf[i]))/364);
     }
     glEnd();
@@ -104,7 +109,7 @@ void render(){
         glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), -1.f);
         //float val = (float)(log(fabs(out[i][0]))+correct[i])/6;
         //glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), val-1.9);
-        float val = (float)(log10(fabs(out[i][0])))/3;
+        float val = (float)(log10(fabs(out[i][0]))+correct[i])/3;
         glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), val-1.8);
         glEnd();
     }
