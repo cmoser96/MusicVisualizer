@@ -107,8 +107,6 @@ void render(){
         glColor3f(1.0f, 0.6f, 0.0f);
         glLineWidth(3.f);
         glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), -1.f);
-        //float val = (float)(log(fabs(out[i][0]))+correct[i])/6;
-        //glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), val-1.9);
         float val = (float)(log10(fabs(out[i][0]))+correct[i])/3;
         glVertex2f(-1.f + 2*float(i)/(UPPER+LOWER), val-1.8);
         glEnd();
