@@ -78,19 +78,10 @@ void render(){
 
     pa_simple_read(s, buf, BUFFER_SIZE, NULL);
 
-    // This local var is the same name as global
+    // Prepare for Waveform
     // Eventually want maybe triple/quad buffersize
     memcpy(dub_buf, (dub_buf+BUFFER_SIZE), BUFFER_SIZE);
     memcpy((dub_buf+BUFFER_SIZE), buf, BUFFER_SIZE);
-
-    for (int i = 0; i < BUFFER_SIZE; i++){
-        in[i] = abs(buf[i] - 128);
-    }
-
-
-    p = fftw_plan_dft_r2c_1d(BUFFER_SIZE, in, out, FFTW_ESTIMATE);
-    fftw_execute(p);
-    fftw_destroy_plan(p);
 
     // Render waveform
     glBegin (GL_LINE_STRIP);
@@ -100,6 +91,16 @@ void render(){
         glVertex2f(-1.f + 2*float(i)/sizeof(dub_buf), float(int(dub_buf[i]))/364);
     }
     glEnd();
+
+
+    // Prepare for FFT
+    for (int i = 0; i < BUFFER_SIZE; i++){
+        in[i] = abs(buf[i] - 128);
+    }
+
+    p = fftw_plan_dft_r2c_1d(BUFFER_SIZE, in, out, FFTW_ESTIMATE);
+    fftw_execute(p);
+    fftw_destroy_plan(p);
 
     // Render FFT
     for(int i = LOWER; i < UPPER; i ++){
