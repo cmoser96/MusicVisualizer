@@ -10,13 +10,8 @@
 #define BUFFER_SIZE SAMPLE_RATE/FRAME_RATE
 #define DOUBLE_BUFFER 2*BUFFER_SIZE
 
-//Opengl
-const float r = .5f;
-float avg;
-
 //Pulse
 pa_simple *s;
-pa_sample_spec ss;
 
 //FFT
 const int nc = (BUFFER_SIZE/2)+1;
@@ -27,7 +22,7 @@ uint8_t buf[BUFFER_SIZE];
 uint8_t dub_buf[DOUBLE_BUFFER];
 const int LOWER = 1;
 const int UPPER = 1315;
-float correct[UPPER] = {0};
+float correct[UPPER];
 
 //Functions
 void mainLoop(int val);

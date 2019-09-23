@@ -17,9 +17,7 @@ int main(int argc, char* args[])
     std::string sink_name = pulse_interface::get_active_sink_name()+".monitor";
 
     // Init pulse connection
-    ss.format = PA_SAMPLE_U8;
-    ss.channels = 1;
-    ss.rate = SAMPLE_RATE;
+    pa_sample_spec ss{PA_SAMPLE_U8, SAMPLE_RATE, 1};
     s = pa_simple_new(NULL,
                     "Peak",
                     PA_STREAM_RECORD,
